@@ -4,11 +4,31 @@
 
 ## 在线使用
 
-部署到 GitHub Pages 后，用任意浏览器（含教室一体机）访问即可：
+无需安装，用任意浏览器（含教室一体机）访问即可：
 
-```
-https://<你的GitHub用户名>.github.io/classroom-interaction/
-```
+**https://jinyongjared-bit.github.io/classroom-interaction/**
+
+## 界面预览
+
+**随机抽人** — 上传名单后随机抽取学生，可设置不重复
+
+![随机抽人](screenshots/01-draw-student.png)
+
+**题库管理** — 新建题库、导入 Markdown/Word、手动添加与编辑题目
+
+![题库管理](screenshots/02-question-bank.png)
+
+**随机抽题** — 大字号题目展示，关键词红色高亮，可选倒计时
+
+![随机抽题](screenshots/03-draw-question.png)
+
+**古诗词背诵** — 统编教材 1-6 年级篇目，按年级筛选，抽诗 / 抽诗+抽人
+
+![古诗词背诵](screenshots/04-poetry.png)
+
+**AI 出题** — 输入书目自动生成整本书阅读问答题
+
+![AI 出题](screenshots/05-ai-gen.png)
 
 ## 功能
 

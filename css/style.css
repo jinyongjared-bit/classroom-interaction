@@ -398,6 +398,7 @@ body {
   flex: 1;
   display: flex;
   align-items: center;
+  align-items: safe center;
   justify-content: center;
   background: var(--bg-card);
   border-radius: var(--r-2xl);
