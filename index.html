@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>课堂互动系统</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航 -->
+    <nav class="navbar">
+      <div class="nav-brand">
+        <span class="nav-brand-icon" id="navBrandIcon"></span>
+        课堂互动系统
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-view="draw-student">
+          <span class="tab-icon" id="tabIconDice"></span>随机抽人
+        </button>
+        <button class="nav-tab" data-view="question-bank">
+          <span class="tab-icon" id="tabIconBank"></span>题库管理
+        </button>
+        <button class="nav-tab" data-view="draw-question">
+          <span class="tab-icon" id="tabIconQuestion"></span>随机抽题
+        </button>
+        <button class="nav-tab" data-view="poetry">
+          <span class="tab-icon" id="tabIconScroll"></span>古诗词背诵
+        </button>
+        <button class="nav-tab" data-view="ai-gen">
+          <span class="tab-icon" id="tabIconSparkles"></span>AI出题
+        </button>
+      </div>
+      <button class="nav-fullscreen" id="btnFullscreen" title="全屏"></button>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+
+      <!-- ========== 视图1: 随机抽人 ========== -->
+      <section class="view active" id="view-draw-student">
+        <div class="view-toolbar">
+          <select id="studentClassSelect" class="select">
+            <option value="">请先选择班级</option>
+          </select>
+          <label class="checkbox-label">
+            <input type="checkbox" id="noRepeat" checked>
+            <span>不重复抽取</span>
+          </label>
+          <button class="btn btn-outline" id="btnManageClass">班级管理</button>
+          <button class="btn btn-outline" id="btnResetDraw"><span class="btn-icon-s" id="iconResetDraw"></span>重置已抽</button>
+        </div>
+
+        <div class="draw-area" id="studentDrawArea">
+          <div class="draw-placeholder">
+              <div class="placeholder-icon" id="placeholderDrawStudent"></div>
+            <p>请选择班级后点击下方按钮抽取学生</p>
+          </div>
+        </div>
+
+        <div class="draw-controls">
+          <button class="btn btn-primary btn-huge" id="btnDrawStudent">抽 取</button>
+          <button class="btn btn-secondary btn-large" id="btnDrawAgain" style="display:none;">再抽一次</button>
+        </div>
+
+        <div class="draw-history" id="studentDrawHistory">
+          <h3>本次抽取记录</h3>
+          <div class="history-chips" id="historyChips"></div>
+        </div>
+      </section>
+
+      <!-- ========== 视图2: 题库管理 ========== -->
+      <section class="view" id="view-question-bank">
+        <div class="view-toolbar">
+          <select id="bankSelect" class="select">
+            <option value="">请选择题库</option>
+          </select>
+          <button class="btn btn-primary" id="btnNewBank">新建题库</button>
+          <button class="btn btn-outline" id="btnImportMD" disabled><span class="btn-icon-s" id="iconImportMD"></span>导入题目文件</button>
+          <button class="btn btn-outline" id="btnDownloadTemplate">下载题库模板</button>
+          <button class="btn btn-outline" id="btnAddQuestion" disabled>手动添加题目</button>
+          <button class="btn btn-danger-outline" id="btnDeleteBank" disabled>删除题库</button>
+          <input type="file" id="mdFileInput" accept=".md,.markdown,.txt,.docx,.doc" style="display:none">
+        </div>
+
+        <div class="bank-content" id="bankContent">
+          <div class="empty-state">
+            <div class="placeholder-icon" id="placeholderBankEmpty"></div>
+            <p>请选择题库或新建题库</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 视图3: 随机抽题 ========== -->
+      <section class="view" id="view-draw-question">
+        <div class="view-toolbar">
+          <select id="questionBankSelect" class="select">
+            <option value="">请选择题库</option>
+          </select>
+          <div class="timer-presets">
+            <span class="timer-label">计时:</span>
+            <button class="btn btn-outline timer-preset-btn active" data-seconds="0">关闭</button>
+            <button class="btn btn-outline timer-preset-btn" data-seconds="30">30秒</button>
+            <button class="btn btn-outline timer-preset-btn" data-seconds="60">60秒</button>
+            <button class="btn btn-outline timer-preset-btn" data-seconds="90">90秒</button>
+            <button class="btn btn-outline timer-preset-btn" data-seconds="120">2分钟</button>
+          </div>
+        </div>
+
+        <div class="draw-area" id="questionDrawArea">
+          <div class="draw-placeholder">
+            <div class="placeholder-icon" id="placeholderDrawQuestion"></div>
+            <p>请选择题库后点击下方按钮抽取题目</p>
+          </div>
+        </div>
+
+        <div class="timer-bar" id="timerBar" style="display:none;">
+          <div class="timer-ring-container">
+            <svg class="timer-ring" width="56" height="56" viewBox="0 0 56 56">
+              <circle class="timer-ring-bg" cx="28" cy="28" r="24" fill="none" stroke-width="4"/>
+              <circle class="timer-ring-fg" id="timerRingFg" cx="28" cy="28" r="24" fill="none" stroke-width="4" stroke-linecap="round" transform="rotate(-90 28 28)"/>
+            </svg>
+            <span class="timer-display" id="timerDisplay">00:00</span>
+          </div>
+          <div class="timer-actions">
+            <button class="btn btn-outline btn-sm" id="btnTimerPause">暂停</button>
+            <button class="btn btn-outline btn-sm" id="btnTimerReset">重置</button>
+          </div>
+        </div>
+
+        <div class="draw-controls">
+          <button class="btn btn-primary btn-huge" id="btnDrawQuestion">抽 题</button>
+          <button class="btn btn-secondary btn-large" id="btnShowAnswer" style="display:none;"><span class="btn-icon-s" id="iconShowAnswer"></span>显示答案</button>
+          <button class="btn btn-outline btn-large" id="btnNextQuestion" style="display:none;"><span class="btn-icon-s" id="iconNextQuestion"></span>下一题</button>
+        </div>
+      </section>
+
+      <!-- ========== 视图4: 古诗词背诵 ========== -->
+      <section class="view" id="view-poetry">
+        <div class="view-toolbar">
+          <select id="poetryClassSelect" class="select">
+            <option value="">选择班级（可关联抽人）</option>
+          </select>
+          <span class="stat-item" id="poetryCountDisplay" style="display:none;"></span>
+        </div>
+
+        <div class="poetry-range-section">
+          <label class="poetry-range-label">抽查范围：</label>
+          <div class="poetry-range-chips" id="poetryRangeChips">
+            <button class="range-chip" data-grade="1">一年级</button>
+            <button class="range-chip" data-grade="2">二年级</button>
+            <button class="range-chip" data-grade="3">三年级</button>
+            <button class="range-chip" data-grade="4">四年级</button>
+            <button class="range-chip" data-grade="5">五年级</button>
+            <button class="range-chip" data-grade="6">六年级</button>
+          </div>
+          <div class="poetry-semester-filter">
+            <label>学期：</label>
+            <button class="range-chip active" data-semester="all">全部</button>
+            <button class="range-chip" data-semester="上册">上册</button>
+            <button class="range-chip" data-semester="下册">下册</button>
+          </div>
+        </div>
+
+        <div class="poetry-controls">
+          <button class="btn btn-primary btn-large" id="btnDrawPoem">随机抽诗</button>
+          <button class="btn btn-secondary btn-large" id="btnDrawPoemAndStudent">抽诗 + 抽人</button>
+          <button class="btn btn-outline btn-large" id="btnDrawStudentPoetry">指定学生随机抽诗</button>
+        </div>
+
+        <div class="draw-area" id="poetryDrawArea">
+          <div class="draw-placeholder">
+            <div class="placeholder-icon" id="placeholderPoetry"></div>
+            <p>请在上方选择抽查范围后抽取诗歌</p>
+          </div>
+        </div>
+
+        <div class="poetry-controls">
+          <button class="btn btn-secondary btn-large" id="btnShowPoem" style="display:none;">显示全文</button>
+          <button class="btn btn-outline btn-large" id="btnNextPoem" style="display:none;">下一首</button>
+          <button class="btn btn-outline btn-large" id="btnPoetryRecord" style="display:none;">记录背诵</button>
+        </div>
+
+        <div class="poetry-list-section" id="poetryListSection" style="display:none;">
+          <h3>本册背诵篇目</h3>
+          <div class="poetry-chips" id="poetryChips"></div>
+        </div>
+
+        <div class="poetry-records-section" id="poetryRecordsSection">
+          <h3>今日背诵记录</h3>
+          <div id="poetryRecordsContainer">
+            <p class="history-empty">暂无背诵记录</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 视图5: AI出题 ========== -->
+      <section class="view" id="view-ai-gen">
+        <div class="view-toolbar">
+          <button class="btn btn-outline" id="btnAISettings"><span class="btn-icon-s" id="iconAISettings"></span>AI 接口设置</button>
+          <span class="ai-status" id="aiStatus">未配置</span>
+        </div>
+
+        <div class="ai-gen-content">
+          <div class="ai-gen-form">
+            <h2>整本书阅读自动出题</h2>
+            <div class="form-group">
+              <label>书名 <span class="required">*</span></label>
+              <input type="text" id="aiBookTitle" class="input" placeholder="如：夏洛的网">
+            </div>
+            <div class="form-group">
+              <label>作者</label>
+              <input type="text" id="aiBookAuthor" class="input" placeholder="如：E.B.怀特">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>适合年级</label>
+                <select id="aiGrade" class="select">
+                  <option value="">不指定</option>
+                  <option value="1">一年级</option>
+                  <option value="2">二年级</option>
+                  <option value="3">三年级</option>
+                  <option value="4">四年级</option>
+                  <option value="5" selected>五年级</option>
+                  <option value="6">六年级</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>生成题数</label>
+                <select id="aiQuestionCount" class="select">
+                  <option value="5">5 题</option>
+                  <option value="10" selected>10 题</option>
+                  <option value="15">15 题</option>
+                  <option value="20">20 题</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>补充说明（可选）</label>
+              <textarea id="aiExtraPrompt" class="textarea" rows="3" placeholder="可补充要求，如：重点考查人物性格、故事情节、主题思想等"></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary btn-large" id="btnGenerateQuestions">生成题目</button>
+            </div>
+          </div>
+
+          <div class="ai-gen-results" id="aiGenResults" style="display:none;">
+            <div class="ai-results-header">
+              <h2>生成的题目</h2>
+              <div class="ai-results-actions">
+                <button class="btn btn-outline" id="btnAdoptAll">全部采纳</button>
+                <select id="aiTargetBank" class="select">
+                  <option value="">保存到新题库</option>
+                </select>
+                <button class="btn btn-primary" id="btnSaveAdopted" disabled>保存已采纳题目</button>
+              </div>
+            </div>
+            <div class="ai-question-list" id="aiQuestionList"></div>
+          </div>
+
+          <div class="ai-gen-loading" id="aiGenLoading" style="display:none;">
+            <div class="loading-spinner"></div>
+            <p>AI 正在生成题目，请稍候...</p>
+            <p class="loading-hint">通常需要 10-30 秒</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========== 模态框: 班级管理 ========== -->
+  <div class="modal-overlay" id="modalClassManage">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h2>班级管理</h2>
+        <button class="modal-close" data-close></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-layout-row">
+          <div class="modal-left-panel">
+            <h3>班级列表</h3>
+            <div id="classListContainer" class="list-container"></div>
+            <button class="btn btn-primary btn-block" id="btnAddClass">+ 新建班级</button>
+          </div>
+          <div class="modal-right-panel">
+            <h3>学生名单</h3>
+            <div id="studentListContainer" class="list-container"></div>
+            <div class="student-add-row" id="studentAddRow">
+              <input type="text" id="newStudentName" class="student-edit-name" placeholder="姓名">
+              <input type="text" id="newStudentNo" class="student-edit-no" placeholder="学号">
+              <button class="btn btn-primary btn-sm" id="btnAddStudent" title="添加学生">${Icons.plus(16)}</button>
+            </div>
+            <div class="upload-area" id="uploadArea">
+              <p>拖放 CSV / Excel 文件到此，或</p>
+              <button class="btn btn-outline" id="btnUploadCSV">选择文件上传</button>
+              <input type="file" id="csvFileInput" accept=".csv,.txt,.xlsx,.xls" style="display:none">
+              <p class="upload-hint">支持 CSV / Excel，自动识别"姓名"和"学号"列，顺序不限</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框: 新建班级 ========== -->
+  <div class="modal-overlay" id="modalNewClass">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>新建班级</h2>
+        <button class="modal-close" data-close></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>班级名称</label>
+          <input type="text" id="newClassName" placeholder="如：三年级2班" class="input">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-outline" data-close>取消</button>
+          <button class="btn btn-primary" id="btnConfirmNewClass">创建</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框: 新建题库 ========== -->
+  <div class="modal-overlay" id="modalNewBank">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>新建题库</h2>
+        <button class="modal-close" data-close></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>题库名称</label>
+          <input type="text" id="newBankName" placeholder="如：语文基础题" class="input">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-outline" data-close>取消</button>
+          <button class="btn btn-primary" id="btnConfirmNewBank">创建</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框: 添加题目 ========== -->
+  <div class="modal-overlay" id="modalAddQuestion">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h2>添加题目</h2>
+        <button class="modal-close" data-close></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>题目内容</label>
+          <textarea id="questionContent" class="textarea" rows="4" placeholder="输入题目内容..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>参考答案</label>
+          <textarea id="questionAnswer" class="textarea" rows="4" placeholder="输入参考答案..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>难度</label>
+          <select id="questionDifficulty" class="select">
+            <option value="easy">简单</option>
+            <option value="medium" selected>中等</option>
+            <option value="hard">困难</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-outline" data-close>取消</button>
+          <button class="btn btn-primary" id="btnConfirmAddQuestion">添加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框: 编辑题目 ========== -->
+  <div class="modal-overlay" id="modalEditQuestion">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h2>编辑题目</h2>
+        <button class="modal-close" data-close></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editQuestionId">
+        <div class="form-group">
+          <label>题目内容</label>
+          <textarea id="editQuestionContent" class="textarea" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>参考答案</label>
+          <textarea id="editQuestionAnswer" class="textarea" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>难度</label>
+          <select id="editQuestionDifficulty" class="select">
+            <option value="easy">简单</option>
+            <option value="medium">中等</option>
+            <option value="hard">困难</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-outline" data-close>取消</button>
+          <button class="btn btn-primary" id="btnConfirmEditQuestion">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框: AI 接口设置 ========== -->
+  <div class="modal-overlay" id="modalAISettings">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>AI 接口设置</h2>
+        <button class="modal-close" data-close></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>接口提供商</label>
+          <select id="aiProvider" class="select">
+            <option value="qianwen">通义千问</option>
+            <option value="wenxin">文心一言</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="custom">自定义接口</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" id="aiApiKey" class="input" placeholder="输入你的 API Key">
+        </div>
+        <div class="form-group" id="aiCustomUrlGroup" style="display:none;">
+          <label>自定义接口地址</label>
+          <input type="text" id="aiCustomUrl" class="input" placeholder="https://your-api-endpoint.com/v1/chat/completions">
+        </div>
+        <div class="form-group">
+          <label>模型名称</label>
+          <input type="text" id="aiModel" class="input" placeholder="如：qwen-turbo" value="qwen-turbo">
+        </div>
+        <div class="form-group">
+          <label>CORS 代理地址（可选，网页版专用）</label>
+          <input type="text" id="aiProxyUrl" class="input" placeholder="如：https://your-proxy.workers.dev/?url=">
+          <p class="form-hint">网页版在线使用时，部分 AI 接口可能因跨域限制无法直接调用。填写代理地址后请求将通过代理转发，留空则直连</p>
+        </div>
+        <div class="form-group">
+          <label>系统角色提示词（System Prompt）</label>
+          <textarea id="aiSystemPrompt" class="textarea" rows="3" placeholder="定义 AI 的角色身份"></textarea>
+          <p class="form-hint">设定 AI 扮演的角色，如"你是一位资深的小学语文教师"</p>
+        </div>
+        <div class="form-group">
+          <label>出题提示词模板</label>
+          <textarea id="aiPromptTemplate" class="textarea textarea-tall" rows="14" placeholder="出题提示词模板，使用占位符替换变量"></textarea>
+          <p class="form-hint">可用占位符：<code>{书名}</code> <code>{作者}</code> <code>{年级}</code> <code>{题数}</code> —— 点击"恢复默认提示词"可重置为内置模板</p>
+        </div>
+        <div class="form-actions form-actions-spread">
+          <button class="btn btn-outline" id="btnResetPrompt">恢复默认提示词</button>
+          <div>
+            <button class="btn btn-outline" data-close>取消</button>
+            <button class="btn btn-primary" id="btnSaveAISettings">保存设置</button>
+          </div>
+        </div>
+        <div class="ai-settings-hint">
+          <p>设置说明：</p>
+          <ul>
+            <li>通义千问：前往 <a href="https://dashscope.console.aliyun.com/" target="_blank">阿里云 DashScope</a> 获取 Key，模型推荐 qwen-turbo</li>
+            <li>DeepSeek：前往 <a href="https://platform.deepseek.com/" target="_blank">DeepSeek 平台</a> 获取 Key，模型推荐 deepseek-chat</li>
+            <li>文心一言：前往 <a href="https://console.bce.baidu.com/qianfan/" target="_blank">千帆平台</a> 获取 Key</li>
+            <li>所有设置仅保存在本地浏览器中，不会上传</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Toast 提示 ========== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="console.warn('xlsx 库加载失败，Excel 导入功能不可用')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" onerror="console.warn('mammoth 库加载失败，Word 导入功能不可用')"></script>
+  <script src="js/db.js"></script>
+  <script src="js/parsers.js"></script>
+  <script src="js/poetry-data.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
